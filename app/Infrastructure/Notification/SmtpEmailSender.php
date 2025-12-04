@@ -11,14 +11,6 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 use RuntimeException;
 
-/**
- * SMTP-based email sender using PHPMailer.
- * 
- * Supports any SMTP provider:
- * - Gmail (with App Password)
- * - Mailtrap (for development/testing)
- * - SendGrid, Mailgun, Amazon SES, etc.
- */
 class SmtpEmailSender implements EmailSender
 {
     public function __construct(
@@ -30,7 +22,6 @@ class SmtpEmailSender implements EmailSender
         $mail = new PHPMailer(true);
 
         try {
-            // SMTP Configuration
             $mail->isSMTP();
             $mail->Host       = $this->config->getString('MAIL_HOST', 'smtp.mailtrap.io');
             $mail->SMTPAuth   = true;
@@ -39,19 +30,16 @@ class SmtpEmailSender implements EmailSender
             $mail->SMTPSecure = $this->getEncryption();
             $mail->Port       = $this->config->getInt('MAIL_PORT', 587);
 
-            // Sender & Recipient
             $mail->setFrom(
                 $this->config->getString('MAIL_FROM_ADDRESS', 'noreply@example.com'),
                 $this->config->getString('MAIL_FROM_NAME', 'Registration System')
             );
             $mail->addAddress($to);
 
-            // Content
             $mail->isHTML(false);
             $mail->Subject = $subject;
             $mail->Body    = $body;
 
-            // Enable debug output in development (set MAIL_DEBUG=2 in .env)
             $mail->SMTPDebug = $this->config->getInt('MAIL_DEBUG', SMTP::DEBUG_OFF);
 
             $mail->send();

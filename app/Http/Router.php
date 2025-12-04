@@ -75,13 +75,9 @@ class Router
         $action      = $routeConfig['action'];
         $middlewares = $routeConfig['middlewares'] ?? [];
 
-        // Final handler = controller/callback
         $controllerHandler = $this->createControllerHandler($action);
-
-        // Wrap with middlewares (pipeline)
         $pipeline = $this->buildMiddlewarePipeline($middlewares, $controllerHandler);
 
-        // Execute pipeline
         return $pipeline($request);
     }
 
@@ -113,12 +109,10 @@ class Router
     private function createControllerHandler(callable|array $action): callable
     {
         return function (Request $request) use ($action): ViewInterface {
-            // Simple callable (closure, function, invokable object)
             if (is_callable($action) && !is_array($action)) {
                 return \call_user_func($action, $request);
             }
 
-            // [ControllerClass::class, 'method']
             if (is_array($action) && count($action) === 2) {
                 [$class, $method] = $action;
 
@@ -152,7 +146,6 @@ class Router
     {
         $pipeline = $last;
 
-        // Wrap from last to first
         foreach (\array_reverse($middlewares) as $middlewareClass) {
             $pipeline = function (Request $request) use ($middlewareClass, $pipeline): ViewInterface {
                 $middleware = $this->container->get($middlewareClass);

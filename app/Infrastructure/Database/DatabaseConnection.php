@@ -27,9 +27,6 @@ class DatabaseConnection
         return $this->connection;
     }
 
-    /**
-     * Create a DatabaseConnection from configuration.
-     */
     public static function fromConfig(ConfigInterface $config): self
     {
         return new self(

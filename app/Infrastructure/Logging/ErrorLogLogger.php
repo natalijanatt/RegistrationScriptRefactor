@@ -6,9 +6,6 @@ namespace App\Infrastructure\Logging;
 
 use App\Domain\Logging\Logger;
 
-/**
- * Logger implementation using PHP's error_log()
- */
 class ErrorLogLogger implements Logger
 {
     public function emergency(string $message, array $context = []): void
@@ -62,11 +59,7 @@ class ErrorLogLogger implements Logger
         
         error_log($formatted);
     }
-    
-    /**
-     * Interpolate context values into message placeholders
-     * e.g., "User {email} registered" with ['email' => 'test@example.com']
-     */
+
     private function interpolate(string $message, array $context): string
     {
         $replace = [];

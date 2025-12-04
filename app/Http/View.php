@@ -7,11 +7,6 @@ namespace App\Http;
 use App\Http\Contracts\ViewInterface;
 use RuntimeException;
 
-/**
- * Template-based HTML view.
- * 
- * Renders PHP template files with data injection.
- */
 class View implements ViewInterface
 {
     private string $viewsPath;
@@ -24,9 +19,6 @@ class View implements ViewInterface
         $this->viewsPath = $viewsPath;
     }
 
-    /**
-     * Create a new View instance for a specific template
-     */
     public function make(string $template, array $data = [], int $statusCode = 200): self
     {
         $view = new self($this->viewsPath);

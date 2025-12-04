@@ -7,19 +7,10 @@ namespace App\Infrastructure\Config;
 use App\Domain\Config\ConfigInterface;
 use RuntimeException;
 
-/**
- * Environment-based configuration implementation.
- * 
- * Reads configuration from environment variables (typically loaded via .env).
- */
 class EnvConfig implements ConfigInterface
 {
-    /** @var array<string, mixed> */
     private array $config;
 
-    /**
-     * @param array<string, mixed> $env Environment variables array
-     */
     public function __construct(array $env)
     {
         $this->config = $env;

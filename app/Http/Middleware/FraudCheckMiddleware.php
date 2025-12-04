@@ -11,9 +11,6 @@ use App\Http\Contracts\ViewInterface;
 use App\Http\Request\Request;
 use App\Http\View\JsonView;
 
-/**
- * Middleware that checks for fraud using MaxMind (simulated) before allowing registration.
- */
 class FraudCheckMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -27,7 +24,6 @@ class FraudCheckMiddleware implements MiddlewareInterface
         $email = $body['email'] ?? '';
         $ipAddress = $request->clientIp();
 
-        // Skip check if no email provided (validation will catch this later)
         if (empty($email)) {
             return $next($request);
         }

@@ -12,11 +12,6 @@ use App\Http\View\NotFoundView;
 use App\Http\View\ServerErrorView;
 use Throwable;
 
-/**
- * Handles uncaught exceptions by converting them to appropriate HTTP responses.
- * 
- * Maps known exception types to specific error views and logs all exceptions.
- */
 class ExceptionHandler implements ExceptionHandlerInterface
 {
     public function __construct(
@@ -43,9 +38,6 @@ class ExceptionHandler implements ExceptionHandlerInterface
         );
     }
 
-    /**
-     * Convert the exception to an appropriate view response.
-     */
     private function render(Throwable $exception): ViewInterface
     {
         return match (true) {

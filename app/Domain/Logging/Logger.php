@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Logging;
 
-/**
- * PSR-3 inspired logger interface
- */
 interface Logger
 {
     public function emergency(string $message, array $context = []): void;

@@ -47,33 +47,16 @@ use App\QueryBuilder\Infrastructure\Builder\DefaultQueryBuilderFactory;
 use App\QueryBuilder\Infrastructure\MySqli\MySqliConnection;
 use Psr\Container\ContainerInterface;
 
-// Domain interfaces
-
-// Application services
-
-// HTTP layer
-
-// Infrastructure
-
 $container = new Container();
 
-/**
- * Configuration
- */
 $container->set(ConfigInterface::class, static function () {
     return new EnvConfig($_ENV);
 }, true);
 
-/**
- * Session
- */
 $container->set(SessionInterface::class, static function () {
     return new NativeSession();
 }, true);
 
-/**
- * Security - CSRF
- */
 $container->set(CsrfTokenManager::class, static function (Container $c) {
     return new CsrfTokenManager(
         $c->get(SessionInterface::class)
@@ -86,9 +69,6 @@ $container->set(CsrfMiddleware::class, static function (Container $c) {
     );
 }, true);
 
-/**
- * Security - Fraud Detection (MaxMind simulation)
- */
 $container->set(FraudCheckService::class, static function () {
     return new SimulatedMaxMindService();
 }, true);
@@ -100,9 +80,6 @@ $container->set(FraudCheckMiddleware::class, static function (Container $c) {
     );
 }, true);
 
-/**
- * Database connection
- */
 $container->set(DatabaseConnection::class, static function (Container $c) {
     return DatabaseConnection::fromConfig(
         $c->get(ConfigInterface::class)
@@ -113,9 +90,6 @@ $container->set(\mysqli::class, static function (Container $c) {
     return $c->get(DatabaseConnection::class)->getConnection();
 }, true);
 
-/**
- * Query builder
- */
 $container->set(MySqliConnection::class, static function (Container $c) {
     return new MySqliConnection($c->get(\mysqli::class));
 }, true);
@@ -126,18 +100,12 @@ $container->set(DefaultQueryBuilderFactory::class, static function (Container $c
     );
 }, true);
 
-/**
- * Repositories
- */
 $container->set(UserRepository::class, static function (Container $c) {
     return new MysqliUserRepository(
         $c->get(DefaultQueryBuilderFactory::class)
     );
 }, true);
 
-/**
- * Infrastructure services
- */
 $container->set(PasswordHasher::class, static function () {
     return new BcryptPasswordHasher();
 }, true);
@@ -158,9 +126,6 @@ $container->set(TransactionManager::class, static function (Container $c) {
     );
 }, true);
 
-/**
- * Validators
- */
 $container->set(RegisterUserValidator::class, static function () {
     return new RegisterUserValidator(
         new EmailRequiredRule(),
@@ -171,9 +136,6 @@ $container->set(RegisterUserValidator::class, static function () {
     );
 }, true);
 
-/**
- * Use Cases
- */
 $container->set(RegisterUser::class, static function (Container $c) {
     return new RegisterUser(
         $c->get(UserRepository::class),
@@ -184,9 +146,6 @@ $container->set(RegisterUser::class, static function (Container $c) {
     );
 }, true);
 
-/**
- * HTTP Layer
- */
 $container->set(View::class, View::class);
 $container->set(RequestFactory::class, RequestFactory::class, true);
 
@@ -200,9 +159,6 @@ $container->set(ExceptionHandlerInterface::class, static function (Container $c)
     );
 }, true);
 
-/**
- * Middleware
- */
 $container->set(AuthenticationMiddleware::class, static function (Container $c) {
     return new AuthenticationMiddleware(
         $c->get(UserRepository::class),
@@ -229,9 +185,6 @@ $container->set(Application::class, static function (Container $c) {
     );
 }, true);
 
-/**
- * Controllers
- */
 $container->set(RegistrationPageController::class, static function (Container $c) {
     return new RegistrationPageController(
         $c->get(View::class),
