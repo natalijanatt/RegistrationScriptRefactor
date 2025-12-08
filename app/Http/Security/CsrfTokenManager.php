@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Security;
 
 use App\Http\Session\SessionInterface;
+use Random\RandomException;
 
 /**
  * Manages CSRF token generation and validation.
@@ -23,6 +24,7 @@ class CsrfTokenManager
 
     /**
      * Generate a new CSRF token and store it in the session.
+     * @throws RandomException
      */
     public function generateToken(): string
     {
@@ -40,6 +42,7 @@ class CsrfTokenManager
 
     /**
      * Get the current CSRF token, generating one if it doesn't exist.
+     * @throws RandomException
      */
     public function getToken(): string
     {
@@ -81,6 +84,7 @@ class CsrfTokenManager
     /**
      * Regenerate the CSRF token.
      * Only call this on session regeneration (login/logout), not on every form submission.
+     * @throws RandomException
      */
     public function regenerateToken(): string
     {

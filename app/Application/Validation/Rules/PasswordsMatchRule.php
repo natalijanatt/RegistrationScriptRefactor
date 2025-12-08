@@ -19,12 +19,25 @@ class PasswordsMatchRule implements ValidationRuleInterface
         if (!$this->supports($input)) {
             return;
         }
-
+//        REFACTORED:
+//        if ($request->password !== '' && $request->passwordConfirmation !== '') {
+//            if ($request->password !== $request->passwordConfirmation) {
+//                $result->addError('password_mismatch');
+//            }
+//        }
         /** @var HasPasswordConfirmation $input */
-        if ($input->getPassword() !== '' && $input->getPasswordConfirmation() !== '') {
-            if ($input->getPassword() !== $input->getPasswordConfirmation()) {
-                $result->addError('password_mismatch');
-            }
+        if ($this->passwordsDoNotMatch($input)) {
+            $result->addError('password_mismatch');
         }
+    }
+
+    private function passwordsDoNotMatch(HasPasswordConfirmation $input): bool
+    {
+        $password = $input->getPassword();
+        $confirmation = $input->getPasswordConfirmation();
+
+        return $password !== '' 
+            && $confirmation !== '' 
+            && $password !== $confirmation;
     }
 }

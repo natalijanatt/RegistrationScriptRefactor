@@ -13,3 +13,6 @@ interface HasPassword
     public function getPassword(): string;
 }
 
+
+
+

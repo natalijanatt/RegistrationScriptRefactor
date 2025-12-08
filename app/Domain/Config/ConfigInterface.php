@@ -58,5 +58,3 @@ interface ConfigInterface
      */
     public function has(string $key): bool;
 }
-
-

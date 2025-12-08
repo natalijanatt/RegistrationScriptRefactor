@@ -11,12 +11,6 @@ use App\Http\Contracts\ViewInterface;
 use App\Http\Request\Request;
 use App\Http\View\JsonView;
 
-/**
- * Middleware that validates registration requests before they reach the controller.
- * 
- * This extracts validation logic from the use case and performs it earlier in the pipeline.
- * The validated RegisterUserRequest DTO is stored in the request attributes.
- */
 class RegistrationValidationMiddleware implements MiddlewareInterface
 {
     public const ATTRIBUTE_NAME = 'registerUserRequest';
@@ -54,4 +48,3 @@ class RegistrationValidationMiddleware implements MiddlewareInterface
         return $next($validatedRequest);
     }
 }
-

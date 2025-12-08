@@ -7,6 +7,7 @@ namespace App\Http\Controller;
 use App\Http\Contracts\ViewInterface;
 use App\Http\Security\CsrfTokenManager;
 use App\Http\View;
+use Random\RandomException;
 
 class RegistrationPageController
 {
@@ -14,7 +15,10 @@ class RegistrationPageController
         private readonly View $view,
         private readonly CsrfTokenManager $csrfManager
     ) {}
-    
+
+    /**
+     * @throws RandomException
+     */
     public function show(): ViewInterface
     {
         $content = $this->view->make('registration', [

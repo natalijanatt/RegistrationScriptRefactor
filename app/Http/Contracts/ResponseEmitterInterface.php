@@ -12,3 +12,6 @@ interface ResponseEmitterInterface
     public function emit(ViewInterface $view): void;
 }
 
+
+
+

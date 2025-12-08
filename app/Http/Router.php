@@ -104,36 +104,63 @@ class Router
     /**
      * @param callable|array $action
      * @return callable(Request): ViewInterface
-     *
      */
     private function createControllerHandler(callable|array $action): callable
     {
+//        REFACTORED:
+//        return function (Request $request) use ($action): ViewInterface {
+//            if (is_callable($action) && !is_array($action)) {
+//                return \call_user_func($action, $request);
+//            }
+//
+//            if (is_array($action) && count($action) === 2) {
+//                [$class, $method] = $action;
+//
+//                if (!class_exists($class)) {
+//                    throw new RouteNotFoundException(sprintf('Controller "%s" not found.', $class));
+//                }
+//
+//                $controller = $this->container->get($class);
+//
+//                if (!\method_exists($controller, $method)) {
+//                    throw new RouteNotFoundException(sprintf(
+//                        'Method "%s" not found on controller "%s".',
+//                        $method,
+//                        $class
+//                    ));
+//                }
+//
+//                return \call_user_func_array([$controller, $method], [$request]);
+//            }
+//
+//            throw new RouteNotFoundException('Invalid route action configuration.');
+//        };
         return function (Request $request) use ($action): ViewInterface {
             if (is_callable($action) && !is_array($action)) {
                 return \call_user_func($action, $request);
             }
 
-            if (is_array($action) && count($action) === 2) {
-                [$class, $method] = $action;
-
-                if (!class_exists($class)) {
-                    throw new RouteNotFoundException(sprintf('Controller "%s" not found.', $class));
-                }
-
-                $controller = $this->container->get($class);
-
-                if (!\method_exists($controller, $method)) {
-                    throw new RouteNotFoundException(sprintf(
-                        'Method "%s" not found on controller "%s".',
-                        $method,
-                        $class
-                    ));
-                }
-
-                return \call_user_func_array([$controller, $method], [$request]);
+            if (!is_array($action) || count($action) !== 2) {
+                throw new RouteNotFoundException('Invalid route action configuration.');
             }
 
-            throw new RouteNotFoundException('Invalid route action configuration.');
+            [$class, $method] = $action;
+
+            if (!class_exists($class)) {
+                throw new RouteNotFoundException(sprintf('Controller "%s" not found.', $class));
+            }
+
+            $controller = $this->container->get($class);
+
+            if (!method_exists($controller, $method)) {
+                throw new RouteNotFoundException(sprintf(
+                    'Method "%s" not found on controller "%s".',
+                    $method,
+                    $class
+                ));
+            }
+
+            return \call_user_func_array([$controller, $method], [$request]);
         };
     }
 

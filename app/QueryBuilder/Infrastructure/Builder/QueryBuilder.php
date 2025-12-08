@@ -136,54 +136,141 @@ final class QueryBuilder implements QueryBuilderInterface
         );
     }
 
+//    REFACTORED:
+//    public function toSql(): string
+//    {
+//        if ($this->table === null) {
+//            throw QueryBuilderException::missingTable();
+//        }
+//
+//        $columnsSql = implode(', ', array_map(
+//            function (string|SqlExpression $column): string {
+//                if ($column instanceof SqlExpression) {
+//                    return $column->toSql($this->dialect);
+//                }
+//
+//                return $column;
+//            },
+//            $this->columns
+//        ));
+//        $tableSql = $this->alias
+//            ? "$this->table AS $this->alias"
+//            : $this->table;
+//
+//        $sql = "SELECT $columnsSql FROM $tableSql";
+//
+//        if (!empty($this->wheres)) {
+//            $whereParts = [];
+//
+//            foreach ($this->wheres as $index => $w) {
+//                $prefix = $index === 0 ? '' : " {$w['boolean']} ";
+//                $whereParts[] = $prefix . $w['expression'];
+//            }
+//
+//            $sql .= " WHERE " . implode('', $whereParts);
+//        }
+//        if (!empty($this->orderBy)) {
+//            $sql .= " ORDER BY " . implode(', ', $this->orderBy);
+//        }
+//
+//        $sql .= $this->dialect->compileLimitOffset(
+//            $this->limitVal,
+//            $this->offsetVal
+//        );
+//
+//        return $sql;
+//    }
     public function toSql(): string
     {
         if ($this->table === null) {
             throw QueryBuilderException::missingTable();
         }
 
-        $columnsSql = implode(', ', array_map(
-            function (string|SqlExpression $column): string {
-                if ($column instanceof SqlExpression) {
-                    return $column->toSql($this->dialect);
-                }
+        return "SELECT {$this->compileColumns()} FROM {$this->compileFrom()}"
+            . $this->compileWhere()
+            . $this->compileOrderBy()
+            . $this->dialect->compileLimitOffset($this->limitVal, $this->offsetVal);
+    }
 
-                return $column;
-            },
+    private function compileColumns(): string
+    {
+        return implode(', ', array_map(
+            fn(string|SqlExpression $col) => $col instanceof SqlExpression 
+                ? $col->toSql($this->dialect) 
+                : $col,
             $this->columns
         ));
-        $tableSql = $this->alias
-            ? "$this->table AS $this->alias"
-            : $this->table;
+    }
 
-        $sql = "SELECT $columnsSql FROM $tableSql";
+    private function compileFrom(): string
+    {
+        return $this->alias ? "{$this->table} AS {$this->alias}" : $this->table;
+    }
 
-        if (!empty($this->wheres)) {
-            $whereParts = [];
-
-            foreach ($this->wheres as $index => $w) {
-                $prefix = $index === 0 ? '' : " {$w['boolean']} ";
-                $whereParts[] = $prefix . $w['expression'];
-            }
-
-            $sql .= " WHERE " . implode('', $whereParts);
-        }
-        if (!empty($this->orderBy)) {
-            $sql .= " ORDER BY " . implode(', ', $this->orderBy);
+    private function compileWhere(): string
+    {
+        if (empty($this->wheres)) {
+            return '';
         }
 
-        $sql .= $this->dialect->compileLimitOffset(
-            $this->limitVal,
-            $this->offsetVal
+        $parts = array_map(
+            fn(int $i, array $w) => ($i === 0 ? '' : " {$w['boolean']} ") . $w['expression'],
+            array_keys($this->wheres),
+            $this->wheres
         );
 
-        return $sql;
+        return ' WHERE ' . implode('', $parts);
+    }
+
+    private function compileOrderBy(): string
+    {
+        return empty($this->orderBy) ? '' : ' ORDER BY ' . implode(', ', $this->orderBy);
     }
 
     public function getBindings(): array
     {
         return $this->bindings;
     }
+
+//    REFACTORED:
+//    public function insert(array $values): int
+//    {
+//        if ($this->table === null) {
+//            throw new \LogicException('QueryBuilder: table() must be set before insert().');
+//        }
+//
+//        if ($values === []) {
+//            throw new \InvalidArgumentException('Insert values cannot be empty.');
+//        }
+//
+//        $columns = [];
+//        $placeholders = [];
+//        $params = [];
+//
+//        foreach ($values as $column => $value) {
+//            $columns[] = $column;
+//
+//            if ($value instanceof SqlExpression) {
+//                $placeholders[] = $value->toSql($this->dialect);
+//            } else {
+//                $placeholder = $this->dialect->placeholder(count($params) + 1);
+//                $placeholders[] = $placeholder;
+//                $params[] = $value;
+//            }
+//        }
+//
+//        $columnsSql = implode(', ', $columns);
+//        $placeholdersSql = implode(', ', $placeholders);
+//
+//        $sql = sprintf(
+//            'INSERT INTO %s (%s) VALUES (%s)',
+//            $this->table,
+//            $columnsSql,
+//            $placeholdersSql
+//        );
+//
+//        return $this->executor->execute($sql, $params);
+//    }
 
     public function insert(array $values): int
     {
@@ -195,32 +282,50 @@ final class QueryBuilder implements QueryBuilderInterface
             throw new \InvalidArgumentException('Insert values cannot be empty.');
         }
 
+        [$columns, $placeholders, $params] = $this->compileInsertValues($values);
+
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $this->table,
+            implode(', ', $columns),
+            implode(', ', $placeholders)
+        );
+
+        return $this->executor->execute($sql, $params);
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     * @return array{0: string[], 1: string[], 2: array}
+     */
+    private function compileInsertValues(array $values): array
+    {
         $columns = [];
         $placeholders = [];
         $params = [];
 
         foreach ($values as $column => $value) {
             $columns[] = $column;
+            [$placeholder, $param] = $this->compileInsertValue($value, count($params));
+            $placeholders[] = $placeholder;
 
-            if ($value instanceof SqlExpression) {
-                $placeholders[] = $value->toSql($this->dialect);
-            } else {
-                $placeholder = $this->dialect->placeholder(count($params) + 1);
-                $placeholders[] = $placeholder;
-                $params[] = $value;
+            if ($param !== null) {
+                $params[] = $param;
             }
         }
 
-        $columnsSql = implode(', ', $columns);
-        $placeholdersSql = implode(', ', $placeholders);
+        return [$columns, $placeholders, $params];
+    }
 
-        $sql = sprintf(
-            'INSERT INTO %s (%s) VALUES (%s)',
-            $this->table,
-            $columnsSql,
-            $placeholdersSql
-        );
+    /**
+     * @return array{0: string, 1: mixed|null}
+     */
+    private function compileInsertValue(mixed $value, int $paramIndex): array
+    {
+        if ($value instanceof SqlExpression) {
+            return [$value->toSql($this->dialect), null];
+        }
 
-        return $this->executor->execute($sql, $params);
+        return [$this->dialect->placeholder($paramIndex + 1), $value];
     }
 }

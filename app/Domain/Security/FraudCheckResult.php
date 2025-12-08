@@ -37,4 +37,3 @@ class FraudCheckResult
         return new self(true, $riskScore, $reason);
     }
 }
-

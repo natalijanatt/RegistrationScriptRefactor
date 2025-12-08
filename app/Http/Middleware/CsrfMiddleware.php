@@ -39,13 +39,6 @@ class CsrfMiddleware implements MiddlewareInterface
             ], 403);
         }
 
-        // NOTE: We do NOT regenerate the token here.
-        // Token stays valid for the entire session to avoid issues with:
-        // - Multiple tabs
-        // - Double-click submissions  
-        // - Browser back button
-        // Token is regenerated only on session regeneration (login/logout)
-
         return $next($request);
     }
 
